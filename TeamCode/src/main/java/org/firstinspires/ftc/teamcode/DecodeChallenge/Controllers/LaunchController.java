@@ -1,23 +1,29 @@
 package org.firstinspires.ftc.teamcode.DecodeChallenge.Controllers;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+
+import org.firstinspires.ftc.teamcode.DecodeChallenge.Systems.RPMManager;
+
+import java.security.InvalidParameterException;
 
 public class LaunchController {
-    private final DcMotor _motor;
 
+    private final DcMotorEx _motor;
+    private final RPMManager _rpmMgr;
     private double _maxPower = 1;
-    private double _minPower = 0.5;
+    private double _targetRPM = 200;
+    public LaunchController(DcMotor motor, RPMManager rpmMgr) {
+        _motor = (DcMotorEx) motor;
+        _rpmMgr = rpmMgr;
 
-    public LaunchController(DcMotor motor) {
-        _motor = motor;
+        if (_motor == null){
+            throw new InvalidParameterException("Couldn't cast DcMotor to DcMotorEx");
+        }
     }
 
-    public void RunMaxPower(){
+    public void SpingUp(){
         _motor.setPower(_maxPower);
-    }
-
-    public void RunMinPower(){
-        _motor.setPower(_minPower);
     }
 
     public void RunPower(double power){
@@ -32,7 +38,25 @@ public class LaunchController {
         _maxPower = power;
     }
 
-    public void SetLowPower(double power){
-        _minPower = power;
+    public void SetTargetRPM(double newTargetRPM){
+        _targetRPM = newTargetRPM;
+    }
+
+    public void SetRPM(DcMotor motor, double targetRPM, double maxRPM) {
+        double power = targetRPM / maxRPM;
+        motor.setPower(power);
+    }
+    public boolean IsReadyForLaunch(){
+        RPMManager.RPMStatus status = _rpmMgr.Update(_targetRPM, 100, 5);
+
+        switch(status){
+            case REACHED:
+                return true;
+
+            case TIMEOUT:
+                return true;
+        }
+
+        return false;
     }
 }
