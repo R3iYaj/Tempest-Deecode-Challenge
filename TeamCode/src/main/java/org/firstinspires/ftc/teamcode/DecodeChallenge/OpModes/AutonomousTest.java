@@ -18,7 +18,6 @@ public class AutonomousTest extends LinearOpMode {
     private FireSequence _fireSequence;
     private Follower _follower;
     private DecodePathing _pathing;
-    private ElapsedTime _stateTimer = new ElapsedTime();
     private RobotState _currentAutoState = RobotState.Preloaded;
 
     @Override
@@ -34,7 +33,6 @@ public class AutonomousTest extends LinearOpMode {
 
         waitForStart();
 
-        RobotState robotState = RobotState.Firing;
         _fireSequence.InitFireMode();
 
         while (opModeIsActive()) {
