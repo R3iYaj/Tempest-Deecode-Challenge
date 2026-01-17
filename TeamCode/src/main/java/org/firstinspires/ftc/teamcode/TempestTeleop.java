@@ -12,6 +12,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import java.util.List;
 
@@ -24,6 +25,9 @@ public class TempestTeleop extends OpMode {
 
     ColorSensor.DetectedColor detectedColor;
 
+    private ElapsedTime timer = new ElapsedTime();
+
+
     DcMotorEx FR;
     DcMotorEx FL;
     DcMotorEx BR;
@@ -35,21 +39,30 @@ public class TempestTeleop extends OpMode {
     DcMotorEx YRightEncoder;
     DcMotorEx XEncoder;
 
-    CRServo roulette;
+
     CRServo leftBlack;
     CRServo rightBlack;
     CRServo leftGreen;
     CRServo rightGreen;
 
+    Servo lever;
+/*
+    private DcMotorEx launcher = null;
+    private ElapsedTime timer = new ElapsedTime();
 
+    // --- CONFIGURE THESE for your hardware ---
+    private static final String LAUNCHER_NAME = "Goat";
+    private static final int TICKS_PER_REV = 1;            // TODO replace with your encoder ticks per motor rev
+    private static final double GEAR_RATIO = 1.0;           // outputRev = motorRev * (1/gearRatio) depending on definition
+    // If output is direct: GEAR_RATIO = 1.0
+    // If motor turns faster than wheel, adjust accordingly
 
+    // Example target RPM for launcher wheel
+    private static final double TARGET_RPM = 5500;
 
-
-
-
-
-
-
+    // Safety/timeouts
+    private static final double SPINUP_TIMEOUT = 4.0; // seconds to wait for spin-up
+*/
 
     /*
      * Code to run ONCE when the driver hits INIT
@@ -80,14 +93,24 @@ public class TempestTeleop extends OpMode {
         YRightEncoder = hardwareMap.get(DcMotorEx.class, "YRightEncoder");//YRight
         XEncoder = hardwareMap.get(DcMotorEx.class, "XEncoder");//XEncoder
 
-        roulette = hardwareMap.get(CRServo.class, "RouletteServo");
+
+        lever = hardwareMap.get(Servo.class, "scooper");
 
 
 
 
-        roulette.setPower(0);
 
         sight.init(hardwareMap);
+
+/*
+        launcher = hardwareMap.get(DcMotorEx.class, LAUNCHER_NAME);
+        // motor direction depending on how you wired it
+        launcher.setDirection(DcMotor.Direction.REVERSE);
+
+        // Use RUN_USING_ENCODER so velocity control uses encoder feedback
+        launcher.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+*/
 
 
 
@@ -120,10 +143,6 @@ public class TempestTeleop extends OpMode {
      */
     @Override
     public void loop() {
-
-
-
-
 
 
 
@@ -191,40 +210,74 @@ public class TempestTeleop extends OpMode {
 
         */
 
-        //rotate roulette for now
-        if(gamepad2.dpad_left){
-            roulette.setPower(0.5);
+        //lever
+        if(gamepad2.right_bumper){
+            lever.setPosition(0.25);
         }
-        else if(gamepad2.dpad_right){
-            roulette.setPower(-1);
+        else{
+            lever.setPosition(0);
         }
-        else {
-            roulette.setPower(0);
+
+        if(gamepad2.dpad_right){
+            timer.reset();
         }
 
 
         //Shoot
         if(gamepad2.right_trigger > 0.2){
             outtake.setPower(-10);
+            if(timer.seconds() > 3){
+                leftBlack.setPower(5);
+                rightBlack.setPower(-5);
+                leftGreen.setPower(-5);
+                rightGreen.setPower(-5);
+            }
         }
         else if(gamepad2.left_trigger > 0.2){
-            outtake.setPower(10);
+            outtake.setPower(-0.9);
+        }
+        else if(gamepad2.dpad_up){
+            outtake.setPower(1);
         }
         else{
             outtake.setPower(0);
         }
 
+/*
 
+        double rpmAdjust = -gamepad1.left_stick_y * 200.0; // adjust +/- 200 RPM per full stick
+        double targetRPM = TARGET_RPM + rpmAdjust;
 
+        if (gamepad2.right_trigger > 0.2) {
+            // Convert target RPM to ticks per second
+            double ticksPerSecond = rpmToTicksPerSecond(targetRPM, TICKS_PER_REV, GEAR_RATIO);
+            launcher.setMode(DcMotor.RunMode.RUN_USING_ENCODER); // ensure using encoder
+            launcher.setVelocity(ticksPerSecond); // DcMotorEx uses ticks/sec
+            telemetry.addData("Current Velo", "%.1f",  launcher.getVelocity());
+            telemetry.update();
+            //timer.reset();
+            // Wait up to SPINUP_TIMEOUT for RPM to stabilize (optional)
+            /*while (timer.seconds() < SPINUP_TIMEOUT && gamepad2.right_trigger > 0.2) {
+                telemetry.addData("Launcher", "Spinning to %.0f RPM (%.0f t/s)", targetRPM, ticksPerSecond);
+                telemetry.addData("Motor velocity (t/s)", launcher.getVelocity());
+                telemetry.update();
 
+            }
 
+        }
+        else if (gamepad2.a) {
+            // quick manual full power (not recommended for precise RPMs)
+            launcher.setPower(1.0);
+        }
+        else {
+            launcher.setPower(0);
+        }
 
-
-
-
-
-
-
+        telemetry.addData("Target RPM", "%.1f", targetRPM);
+        double currentTps = launcher.getVelocity();
+        double currentRPM = ticksPerSecondToRpm(currentTps, TICKS_PER_REV, GEAR_RATIO);
+        telemetry.addData("Current Velo", "%.1f",  launcher.getVelocity());
+        telemetry.update();
 
 
         telemetry.addData("FL power", FL_power);
@@ -232,7 +285,7 @@ public class TempestTeleop extends OpMode {
         telemetry.addData("BL power", BL_power);
         telemetry.addData("BR power", BR_power);
         telemetry.update();
-
+*/
     }
 
     /*
@@ -259,6 +312,20 @@ public class TempestTeleop extends OpMode {
             }
             return val;
         }
+
+
+    private double rpmToTicksPerSecond(double rpm, int ticksPerRev, double gearRatio) {
+        // rpm -> ticks/sec
+        return (rpm / 60.0) * ticksPerRev * gearRatio;
+    }
+
+    private double ticksPerSecondToRpm(double ticksPerSecond, int ticksPerRev, double gearRatio) {
+        return (ticksPerSecond / (ticksPerRev * gearRatio)) * 60.0;
+    }
+
+
+
+
 
 }
 
