@@ -12,13 +12,13 @@ import org.firstinspires.ftc.teamcode.DecodeChallenge.Systems.FireSequence;
 
 @Autonomous(name="Autonomous Pedro Test", group="Test")
 public class AutonomousTest extends LinearOpMode {
-    private enum RobotState { Preloaded, Firing, Move, Idle }
+    private enum RobotState { Preloaded, MoveOffWall, MoveOffLaunch, Idle }
 
     private RobotMapping _robotMapping;
     private FireSequence _fireSequence;
     private Follower _follower;
     private DecodePathing _pathing;
-    private RobotState _currentAutoState = RobotState.Preloaded;
+    private RobotState _currentAutoState = RobotState.MoveOffWall;
 
     @Override
     public void runOpMode() {
@@ -42,6 +42,11 @@ public class AutonomousTest extends LinearOpMode {
             _follower.update();
 
             switch (_currentAutoState){
+
+                case MoveOffWall:
+
+                    break;
+
                 case Preloaded:
                     launchState = _fireSequence.GetStatus();
 
@@ -50,11 +55,11 @@ public class AutonomousTest extends LinearOpMode {
                     }
 
                     if (launchState == FireSequence.LaunchState.Off){
-                        _currentAutoState = RobotState.Move;
+                        _currentAutoState = RobotState.MoveOffLaunch;
                     }
                     break;
 
-                case Move:
+                case MoveOffLaunch:
                     if (!_follower.isBusy()){
                         _currentAutoState = RobotState.Idle;
                     }
