@@ -20,7 +20,7 @@ public class FireSequence {
 
 
     private static final double _launcherTargetVelocity = 2600; // NOTE: Observed max speed: 2600
-    private LaunchState _currentState;
+    private LaunchState _currentState = LaunchState.Off;
     private final ElapsedTime _stateTimer = new ElapsedTime();
     private int _ballsFired;
     private boolean _fireAway;
