@@ -7,7 +7,6 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.teamcode.DecodeChallenge.Controllers.BasicDriveController;
 import org.firstinspires.ftc.teamcode.DecodeChallenge.Systems.RobotMapping;
 import org.firstinspires.ftc.teamcode.DecodeChallenge.PedroPathing.Constants;
-import org.firstinspires.ftc.teamcode.DecodeChallenge.Systems.DecodePathing;
 import org.firstinspires.ftc.teamcode.DecodeChallenge.Systems.FireSequence;
 
 @Autonomous(name="Autonomous Comp Test", group="Test")
@@ -16,7 +15,6 @@ public class AutonomousTest extends LinearOpMode {
 
     private RobotMapping _robotMapping;
     private FireSequence _fireSequence;
-    private Follower _follower;
     private RobotState _currentAutoState = RobotState.Start;
     private BasicDriveController _driveController;
 
@@ -24,29 +22,24 @@ public class AutonomousTest extends LinearOpMode {
     public void runOpMode() {
 
         _robotMapping = new RobotMapping(hardwareMap);
-        _follower = Constants.createFollower(hardwareMap);
         _fireSequence = new FireSequence(telemetry, _robotMapping);
         _driveController = new BasicDriveController(_robotMapping);
 
-        telemetry.addData("OpMode", "Autonomous Comp Test");
+        telemetry.addData("OpMode", "Autonomous Comp Test 11");
         telemetry.addData("Robot State: ", _currentAutoState);
         telemetry.update();
 
         waitForStart();
 
         // NOTE: initialize launch variable and spin up the launcher.
-        FireSequence.LaunchState launchState = FireSequence.LaunchState.Off;
+        FireSequence.LaunchState launchState;
 
         while (opModeIsActive()) {
-
-            _follower.update();
-
-            launchState = _fireSequence.GetStatus();
 
             switch (_currentAutoState){
 
                 case Start:
-                    _driveController.SetTarget(0.15);
+                    _driveController.SetTarget(175);
                     _currentAutoState = RobotState.MoveOffWall;
                     break;
 
@@ -59,12 +52,15 @@ public class AutonomousTest extends LinearOpMode {
 
                 case Preloaded:
 
-                    if (launchState == FireSequence.LaunchState.ReadyToFire){
+                    _fireSequence.GetStatus();
+
+                    if (_fireSequence.IsReadyToFire()){
+
                         _fireSequence.Fire();
                     }
 
-                    if (launchState == FireSequence.LaunchState.Off){
-                        _driveController.SetTarget(3);
+                    if (_fireSequence.IsFireComplete()){
+                        _driveController.SetTarget(125);
                         _currentAutoState = RobotState.MoveOffLaunch;
                     }
                     break;
@@ -80,12 +76,10 @@ public class AutonomousTest extends LinearOpMode {
                     break;
             }
 
-            telemetry.addData("Auto State", _currentAutoState);
-            telemetry.addData("Fire State", launchState);
-            telemetry.addData("Pos X", _follower.getPose().getX());
-            telemetry.addData("Pos Y", _follower.getPose().getY());
+            telemetry.addData("Auto State: ", _currentAutoState);
             _driveController.DebugOutput(telemetry);
             telemetry.update();
+            sleep(1000);
         }
     }
 }

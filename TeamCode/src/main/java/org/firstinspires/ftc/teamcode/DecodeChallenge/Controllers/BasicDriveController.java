@@ -13,9 +13,10 @@ public class BasicDriveController {
     public DcMotor _rightBackDrive;
     public DcMotor _yLeftEncoder;
     private int TicksPerRev = 2000;
-    private double EncoderWheelDiameter = 1.82;
-    private double TicksPerInch = TicksPerRev / EncoderWheelDiameter * Math.PI;
-    private double _maxPower = -0.25;
+    private double EncoderWheelDiameter = 48;
+    private double _circumference = (EncoderWheelDiameter * Math.PI);
+    private double TicksPerMm = TicksPerRev / _circumference;
+    private double _maxPower = -0.15;
     private int _targetTicks;
 
 
@@ -29,14 +30,14 @@ public class BasicDriveController {
 
         _yLeftEncoder = _robotMapping.YLeftEncoder;
     }
-    public void SetTarget(double inches) {
-        _targetTicks = (int)(inches * TicksPerInch);
+    public void SetTarget(double millimeters) {
+        _targetTicks = (int)(millimeters * TicksPerMm);
         _yLeftEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         setAllMotorPowers(_maxPower);
     }
 
     public boolean IsDoneMoving(){
-        if (_yLeftEncoder.getCurrentPosition() < _targetTicks){
+        if (Math.abs(_yLeftEncoder.getCurrentPosition()) < Math.abs(_targetTicks)){
             return false;
         }
 
@@ -46,9 +47,11 @@ public class BasicDriveController {
     }
 
     public void DebugOutput(Telemetry telemetry){
-        telemetry.addData("Current Power", _leftBackDrive.getPower());
-        telemetry.addData("Current Y Encoder", _yLeftEncoder.getCurrentPosition());
-        telemetry.addData("Target Ticks", _targetTicks);
+        telemetry.addData("Ticks: ", TicksPerMm);
+        telemetry.addData("Circumference: ", _circumference);
+        telemetry.addData("Current Power: ", _leftBackDrive.getPower());
+        telemetry.addData("Current Y Encoder: ", _yLeftEncoder.getCurrentPosition());
+        telemetry.addData("Target Ticks: ", _targetTicks);
     }
     private void setAllMotorPowers(double power){
         _leftFrontDrive.setPower(power);

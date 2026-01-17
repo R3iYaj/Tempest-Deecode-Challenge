@@ -41,6 +41,11 @@ public class FireSequence {
         ChangeState(LaunchState.SpinningUp);
     }
 
+    public boolean IsReadyToFire(){
+        _telemetry.addData("Fire State: ", _currentState);
+        return _currentState == LaunchState.ReadyToFire;
+    }
+
     public void Fire(){
         _fireAway = true;
     }
@@ -50,8 +55,14 @@ public class FireSequence {
         ChangeState(LaunchState.Loading);
     }
 
+    public boolean IsFireComplete(){
+        return _currentState == LaunchState.Off;
+    }
+
     public LaunchState GetStatus() {
 
+        _telemetry.addData("Fire State: ", _currentState);
+        _distanceSensor.DebugOutuput(_telemetry);
         _launcher.ReportVelocity(_telemetry);
 
         switch (_currentState) {
@@ -77,7 +88,7 @@ public class FireSequence {
 
             case ScoopUp:
                 if (_scooper.IsActuationComplete() || _stateTimer.milliseconds() > 2000) {
-                    _scooper.ScoopDown(800);
+                    _scooper.ScoopDown(500);
                     ChangeState(LaunchState.ScoopDown);
                 }
                 break;

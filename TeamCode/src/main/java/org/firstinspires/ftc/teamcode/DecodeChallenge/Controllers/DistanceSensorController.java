@@ -21,4 +21,8 @@ public class DistanceSensorController {
     public double GetDistanceCm(){
         return _distanceSensor.getDistance(DistanceUnit.CM);
     }
+
+    public void DebugOutuput(Telemetry tele){
+        tele.addData("Ball Dist: ", _distanceSensor.getDistance(DistanceUnit.INCH));
+    }
 }
